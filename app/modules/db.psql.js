@@ -225,6 +225,9 @@ exports.getConnection = () => {
 	return pool.connect();
 };
 
+// Parameterised-query entry point for request and upload data.
+exports.query = (text, values = []) => pool.query(text, values);
+
 exports.getStatement = (mapperName, queryId, param) => {
 	const statement = mapper.getStatement(mapperName, queryId, param, format);
 	preSqlLog(statement);
