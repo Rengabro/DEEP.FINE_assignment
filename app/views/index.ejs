@@ -159,7 +159,7 @@
                 poi.latitude = Number(poi.latitude);
                 poi.longitude = Number(poi.longitude);
                 poi.marker = L.marker([poi.latitude, poi.longitude], { icon: icons.poi, title: poi.title })
-                    .bindPopup(L.popup({ maxWidth: 260 }));
+                    .bindPopup(L.popup({ maxWidth: 260, autoPan: false }));
                 // Run after Leaflet's built-in popup toggle so a reselected marker always opens.
                 poi.marker.on('click', () => setTimeout(() => selectPoi(poi), 0));
                 poi.marker.addTo(poiLayer);
