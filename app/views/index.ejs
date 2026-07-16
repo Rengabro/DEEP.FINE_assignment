@@ -27,6 +27,14 @@
     <button id="import-button" type="button" title="엑셀 파일을 업로드합니다">↑ <span>엑셀 Import</span></button>
     <input id="file-input" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
 </div>
+<aside id="route-panel" class="route-panel" hidden aria-label="TMAP 도보 경로 안내">
+    <div class="route-panel-header">
+        <strong>도보 경로 안내</strong>
+        <button id="route-close-button" type="button" aria-label="경로 안내 닫기">×</button>
+    </div>
+    <p id="route-summary" class="route-summary"></p>
+    <ol id="route-steps" class="route-steps"></ol>
+</aside>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -115,6 +123,25 @@
             return '';
         }
     };
+    const getRouteInstructions = (route) => route.features
+        .filter((feature) => feature.geometry?.type === 'Point')
+        .map((feature) => feature.properties?.description)
+        .filter((description, index, instructions) => description && instructions.indexOf(description) === index);
+    const showRouteDetails = (route) => {
+        const summary = route.features?.find((feature) => feature.properties?.totalDistance)?.properties;
+        const instructions = getRouteInstructions(route);
+        const list = $('#route-steps');
+        list.replaceChildren();
+        instructions.forEach((instruction) => {
+            const item = document.createElement('li');
+            item.textContent = instruction;
+            list.append(item);
+        });
+        $('#route-summary').textContent = summary?.totalDistance
+            ? `${Math.round(summary.totalDistance)}m · 약 ${Math.ceil(summary.totalTime / 60)}분`
+            : 'TMAP 도보 경로';
+        $('#route-panel').hidden = false;
+    };
     async function selectPoi(poi) {
         selectedPoiId = poi.id;
         map.setView([poi.latitude, poi.longitude], Math.max(map.getZoom(), 17), { animate: true });
@@ -143,7 +170,8 @@
                 style: { color: '#2478ff', weight: 5, opacity: .85 }
             }).addTo(map);
             if (routeLayer.getLayers().length) map.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
-            const summary = route.features?.[0]?.properties;
+            showRouteDetails(route);
+            const summary = route.features?.find((feature) => feature.properties?.totalDistance)?.properties;
             notify(summary?.totalDistance
                 ? `도보 ${Math.round(summary.totalDistance)}m · 약 ${Math.ceil(summary.totalTime / 60)}분`
                 : 'TMAP 도보 경로를 표시했습니다.');
@@ -197,6 +225,13 @@
         }
         // Use the rendered marker position so the map always centers on the red pin itself.
         map.setView(userMarker.getLatLng(), 16, { animate: true });
+    });
+    $('#route-close-button').addEventListener('click', () => {
+        $('#route-panel').hidden = true;
+        if (routeLayer) {
+            map.removeLayer(routeLayer);
+            routeLayer = undefined;
+        }
     });
     $('#refresh-button').addEventListener('click', async () => {
         await loadPois();

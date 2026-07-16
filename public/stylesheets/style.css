@@ -14,6 +14,13 @@ button:hover { filter: brightness(.94); }
 .poi-list button:hover { background: #edf3ff; }
 .map-actions { position: fixed; z-index: 1000; bottom: 28px; left: 16px; display: grid; gap: 8px; }
 .map-actions button { min-width: 122px; padding: 12px 15px; box-shadow: 0 4px 14px rgba(20,34,55,.2); }
+.route-panel { position: fixed; z-index: 1000; top: 16px; right: 16px; width: min(340px, calc(100vw - 32px)); max-height: min(480px, calc(100vh - 32px)); overflow: hidden auto; padding: 14px; border-radius: 14px; background: rgba(255,255,255,.96); box-shadow: 0 8px 26px rgba(20,34,55,.2); }
+.route-panel[hidden] { display: none; }
+.route-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.route-panel-header button { width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 20px; line-height: 1; }
+.route-summary { margin: 10px 0; color: #2864dc; font-weight: 700; }
+.route-steps { display: grid; gap: 9px; margin: 0; padding-left: 22px; }
+.route-steps li { color: #3d4757; font-size: 14px; line-height: 1.4; }
 .toast { position: fixed; z-index: 1200; right: 18px; bottom: 24px; max-width: min(420px, calc(100vw - 36px)); padding: 12px 15px; border-radius: 9px; background: #1f2937; color: white; box-shadow: 0 5px 18px rgba(0,0,0,.22); opacity: 0; transform: translateY(10px); transition: .2s; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateY(0); }
 .toast.error { background: #b42318; }
@@ -26,4 +33,5 @@ button:hover { filter: brightness(.94); }
   .map-actions { bottom: 12px; left: 8px; }
   .map-actions button { min-width: 46px; padding: 12px; }
   .map-actions button span { display: none; }
+  .route-panel { top: auto; right: 8px; bottom: 12px; max-height: 42vh; width: calc(100vw - 16px); padding-bottom: 14px; }
 }
