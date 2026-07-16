@@ -17,7 +17,7 @@ test('imports valid Excel rows and replaces the POI dataset', async (t) => {
     let savedPois;
     indexModel.replacePois = async (pois) => {
         savedPois = pois;
-        return pois.length;
+        return { previousCount: 3, importedCount: pois.length };
     };
     t.after(() => { indexModel.replacePois = originalReplacePois; });
 
@@ -25,10 +25,19 @@ test('imports valid Excel rows and replaces the POI dataset', async (t) => {
         { title: '테스트 POI', latitude: 37.5295, longitude: 126.9655 }
     ]));
 
-    assert.equal(count, 1);
+    assert.deepEqual(count, { previousCount: 3, importedCount: 1 });
     assert.deepEqual(savedPois, [
         { title: '테스트 POI', latitude: 37.5295, longitude: 126.9655 }
     ]);
+});
+
+test('returns the valid row count before importing an Excel file', () => {
+    const preview = poiService.previewExcel(createExcelFile([
+        { title: '첫 번째 POI', latitude: 37.5295, longitude: 126.9655 },
+        { title: '두 번째 POI', latitude: 37.5311, longitude: 126.9647 }
+    ]));
+
+    assert.deepEqual(preview, { validCount: 2 });
 });
 
 test('rejects an Excel file with invalid coordinates', async () => {

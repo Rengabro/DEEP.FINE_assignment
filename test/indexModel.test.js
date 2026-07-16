@@ -7,7 +7,10 @@ const createConnection = () => {
     return {
         queries,
         get released() { return released; },
-        query: async (text, values = []) => { queries.push({ text, values }); },
+        query: async (text, values = []) => {
+            queries.push({ text, values });
+            return text.includes('SELECT COUNT(*)') ? { rows: [{ count: 3 }] } : { rows: [] };
+        },
         release: () => { released = true; }
     };
 };
@@ -22,7 +25,7 @@ test('replaces POIs in one transaction after truncating existing rows', async ()
         { title: 'B', latitude: 37.6, longitude: 127.0 }
     ]);
 
-    assert.equal(count, 2);
+    assert.deepEqual(count, { previousCount: 3, importedCount: 2 });
     assert.match(connection.queries[0].text, /BEGIN/);
     assert.ok(connection.queries.some(({ text }) => text.includes('TRUNCATE TABLE tb_poi RESTART IDENTITY')));
     assert.ok(connection.queries.some(({ text, values }) => text.includes('INSERT INTO tb_poi') && values.length === 6));

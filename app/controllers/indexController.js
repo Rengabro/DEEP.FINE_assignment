@@ -12,8 +12,20 @@ exports.getPois = async (req, res, next) => {
 
 exports.importPois = async (req, res, next) => {
     try {
-        const count = await poiService.importExcel(req.file);
-        res.json({ message: `${count}건의 POI를 저장했습니다.`, resultCnt: count });
+        const result = await poiService.importExcel(req.file);
+        res.json({
+            message: `기존 ${result.previousCount}건을 삭제하고 ${result.importedCount}건의 POI를 저장했습니다.`,
+            resultCnt: result.importedCount,
+            resultData: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.previewPoisImport = async (req, res, next) => {
+    try {
+        res.json({ resultData: poiService.previewExcel(req.file) });
     } catch (error) {
         next(error);
     }

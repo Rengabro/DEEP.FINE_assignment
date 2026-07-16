@@ -35,6 +35,8 @@ exports.replacePois = async (pois) => {
     try {
         await connection.query('BEGIN');
         await connection.query(CREATE_POI_TABLE);
+        const previousCountResult = await connection.query('SELECT COUNT(*)::int AS count FROM tb_poi');
+        const previousCount = previousCountResult.rows[0].count;
         await connection.query('TRUNCATE TABLE tb_poi RESTART IDENTITY');
 
         for (let offset = 0; offset < pois.length; offset += 500) {
@@ -52,7 +54,7 @@ exports.replacePois = async (pois) => {
         }
 
         await connection.query('COMMIT');
-        return pois.length;
+        return { previousCount, importedCount: pois.length };
     } catch (error) {
         await connection.query('ROLLBACK');
         throw error;

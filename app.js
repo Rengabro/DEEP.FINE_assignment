@@ -37,11 +37,13 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   if (req.path.startsWith('/api/')) {
     const databaseUnavailable = err.code === 'ECONNREFUSED';
-    return res.status(err.status || 500).json({
+    const response = {
       message: databaseUnavailable
         ? 'PostgreSQL에 연결할 수 없습니다. config.json의 DB를 실행한 뒤 다시 시도해 주세요.'
         : (err.message || '서버 요청을 처리하지 못했습니다.')
-    });
+    };
+    if (err.invalidRows) response.invalidRows = err.invalidRows;
+    return res.status(err.status || 500).json(response);
   }
 
   // set locals, only providing error in development

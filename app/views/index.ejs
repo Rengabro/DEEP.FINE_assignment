@@ -27,6 +27,14 @@
     <button id="import-button" type="button" title="엑셀 파일을 업로드합니다">↑ <span>엑셀 Import</span></button>
     <input id="file-input" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
 </div>
+<section id="import-preview" class="import-preview" hidden aria-live="polite">
+    <strong id="import-file-name"></strong>
+    <p id="import-row-count"></p>
+    <div class="import-preview-actions">
+        <button id="import-confirm-button" type="button">DB에 저장</button>
+        <button id="import-cancel-button" type="button" class="secondary-button">취소</button>
+    </div>
+</section>
 <aside id="route-panel" class="route-panel" hidden aria-label="TMAP 도보 경로 안내">
     <div class="route-panel-header">
         <strong>도보 경로 안내</strong>
@@ -60,6 +68,7 @@
     let pois = [];
     let firstPosition = true;
     let selectedPoiId = null;
+    let selectedImportFile = null;
 
     const $ = (selector) => document.querySelector(selector);
     const notify = (message, isError = false) => {
@@ -73,8 +82,26 @@
     const request = async (url, options) => {
         const response = await fetch(url, options);
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.message || '요청에 실패했습니다.');
+        if (!response.ok) {
+            const error = new Error(data.message || '요청에 실패했습니다.');
+            error.invalidRows = data.invalidRows;
+            throw error;
+        }
         return data;
+    };
+    const setImportBusy = (isBusy) => {
+        $('#import-button').disabled = isBusy;
+        $('#import-confirm-button').disabled = isBusy;
+        $('#import-cancel-button').disabled = isBusy;
+    };
+    const clearImportPreview = () => {
+        selectedImportFile = null;
+        $('#import-preview').hidden = true;
+    };
+    const showImportPreview = (file, validCount) => {
+        $('#import-file-name').textContent = file.name;
+        $('#import-row-count').textContent = `${validCount}건의 POI를 저장할 준비가 되었습니다.`;
+        $('#import-preview').hidden = false;
     };
     const makePopup = (poi, address = '') => {
         const content = document.createElement('div');
@@ -242,17 +269,38 @@
         const file = event.target.files[0];
         if (!file) return;
         try {
+            setImportBusy(true);
             const form = new FormData();
             form.append('file', file);
-            const result = await request('/api/pois/import', { method: 'POST', body: form });
-            await loadPois();
-            notify(result.message);
+            const result = await request('/api/pois/import/preview', { method: 'POST', body: form });
+            selectedImportFile = file;
+            showImportPreview(file, result.resultData.validCount);
         } catch (error) {
-            notify(error.message, true);
+            const invalidRows = error.invalidRows?.length ? ` 오류 행: ${error.invalidRows.join(', ')}` : '';
+            notify(`${error.message}${invalidRows}`, true);
+            clearImportPreview();
         } finally {
+            setImportBusy(false);
             event.target.value = '';
         }
     });
+    $('#import-confirm-button').addEventListener('click', async () => {
+        if (!selectedImportFile) return;
+        try {
+            setImportBusy(true);
+            const form = new FormData();
+            form.append('file', selectedImportFile);
+            const result = await request('/api/pois/import', { method: 'POST', body: form });
+            await loadPois();
+            notify(result.message);
+            clearImportPreview();
+        } catch (error) {
+            notify(error.message, true);
+        } finally {
+            setImportBusy(false);
+        }
+    });
+    $('#import-cancel-button').addEventListener('click', clearImportPreview);
 
     trackPosition();
     loadPois();

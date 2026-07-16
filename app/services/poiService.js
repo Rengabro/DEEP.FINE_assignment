@@ -37,6 +37,11 @@ const readPoisFromExcel = (file) => {
 
 exports.getPois = (search) => indexModel.findPois(search);
 
+exports.previewExcel = (file) => {
+    const pois = readPoisFromExcel(file);
+    return { validCount: pois.length };
+};
+
 exports.importExcel = async (file) => {
     const pois = readPoisFromExcel(file);
     return indexModel.replacePois(pois);

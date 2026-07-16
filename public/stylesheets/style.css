@@ -14,6 +14,13 @@ button:hover { filter: brightness(.94); }
 .poi-list button:hover { background: #edf3ff; }
 .map-actions { position: fixed; z-index: 1000; bottom: 28px; left: 16px; display: grid; gap: 8px; }
 .map-actions button { min-width: 122px; padding: 12px 15px; box-shadow: 0 4px 14px rgba(20,34,55,.2); }
+.map-actions button:disabled, .import-preview button:disabled { cursor: wait; opacity: .6; }
+.import-preview { position: fixed; z-index: 1000; bottom: 28px; left: 150px; width: min(310px, calc(100vw - 182px)); padding: 14px; border-radius: 12px; background: rgba(255,255,255,.97); box-shadow: 0 8px 26px rgba(20,34,55,.2); }
+.import-preview[hidden] { display: none; }
+.import-preview p { margin: 8px 0 12px; color: #667085; font-size: 13px; }
+.import-preview-actions { display: flex; gap: 8px; }
+.import-preview-actions button { flex: 1; padding: 9px 10px; }
+.secondary-button { background: #667085; }
 .route-panel { position: fixed; z-index: 1000; top: 16px; right: 16px; width: min(340px, calc(100vw - 32px)); max-height: min(480px, calc(100vh - 32px)); overflow: hidden auto; padding: 14px; border-radius: 14px; background: rgba(255,255,255,.96); box-shadow: 0 8px 26px rgba(20,34,55,.2); }
 .route-panel[hidden] { display: none; }
 .route-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -33,5 +40,6 @@ button:hover { filter: brightness(.94); }
   .map-actions { bottom: 12px; left: 8px; }
   .map-actions button { min-width: 46px; padding: 12px; }
   .map-actions button span { display: none; }
+  .import-preview { right: 8px; bottom: 78px; left: 8px; width: auto; }
   .route-panel { top: auto; right: 8px; bottom: 12px; max-height: 42vh; width: calc(100vw - 16px); padding-bottom: 14px; }
 }
