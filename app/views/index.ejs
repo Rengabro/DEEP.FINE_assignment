@@ -59,8 +59,10 @@
     }).addTo(map);
 
     const icons = {
-        user: L.icon({ iconUrl: '/images/pin-red.svg', iconSize: [38, 45], iconAnchor: [19, 43], popupAnchor: [0, -40] }),
-        poi: L.icon({ iconUrl: '/images/pin-location.svg', iconSize: [36, 43], iconAnchor: [18, 41], popupAnchor: [0, -38] })
+        // Both provided SVGs are circular markers with a lower drop shadow.
+        // Anchor them at the circle centre, not the bottom of the image.
+        user: L.icon({ iconUrl: '/images/pin-red.svg', iconSize: [38, 38], iconAnchor: [19, 12], popupAnchor: [0, -16] }),
+        poi: L.icon({ iconUrl: '/images/pin-location.svg', iconSize: [36, 36], iconAnchor: [18, 15], popupAnchor: [0, -18] })
     };
     const poiLayer = L.featureGroup().addTo(map);
     let routeLayer;
