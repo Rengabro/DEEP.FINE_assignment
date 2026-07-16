@@ -40,6 +40,25 @@ test('returns the valid row count before importing an Excel file', () => {
     assert.deepEqual(preview, { validCount: 2 });
 });
 
+test('creates a POI with validated map coordinates', async (t) => {
+    const originalCreatePoi = indexModel.createPoi;
+    indexModel.createPoi = async (poi) => ({ id: 10, ...poi });
+    t.after(() => { indexModel.createPoi = originalCreatePoi; });
+
+    const poi = await poiService.createPoi({
+        title: '지도 클릭 POI',
+        latitude: '37.5295',
+        longitude: '126.9655'
+    });
+
+    assert.deepEqual(poi, {
+        id: 10,
+        title: '지도 클릭 POI',
+        latitude: 37.5295,
+        longitude: 126.9655
+    });
+});
+
 test('rejects an Excel file with invalid coordinates', async () => {
     const file = createExcelFile([
         { title: '잘못된 POI', latitude: 100, longitude: 126.9655 }

@@ -22,6 +22,7 @@
 </section>
 
 <div class="map-actions">
+    <button id="add-poi-button" type="button" title="POI 추가 위치를 선택합니다">＋ <span>POI 추가</span></button>
     <button id="my-location-button" type="button" title="현재 위치로 이동합니다">◎ <span>내 위치</span></button>
     <button id="refresh-button" type="button" title="DB에서 POI를 다시 불러옵니다">↻ <span>새로고침</span></button>
     <button id="import-button" type="button" title="엑셀 파일을 업로드합니다">↑ <span>엑셀 Import</span></button>
@@ -69,6 +70,7 @@
     let firstPosition = true;
     let selectedPoiId = null;
     let selectedImportFile = null;
+    let isPoiAddMode = false;
 
     const $ = (selector) => document.querySelector(selector);
     const notify = (message, isError = false) => {
@@ -102,6 +104,12 @@
         $('#import-file-name').textContent = file.name;
         $('#import-row-count').textContent = `${validCount}건의 POI를 저장할 준비가 되었습니다.`;
         $('#import-preview').hidden = false;
+    };
+    const setPoiAddMode = (enabled) => {
+        isPoiAddMode = enabled;
+        $('#map_div').classList.toggle('is-adding-poi', enabled);
+        $('#add-poi-button').classList.toggle('is-active', enabled);
+        $('#add-poi-button').setAttribute('aria-pressed', String(enabled));
     };
     const makePopup = (poi, address = '') => {
         const content = document.createElement('div');
@@ -150,6 +158,24 @@
             return '';
         }
     };
+    async function createPoiAt(latitude, longitude) {
+        const title = window.prompt('추가할 POI 이름을 입력해 주세요.');
+        if (title === null) return;
+
+        try {
+            const result = await request('/api/pois', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, latitude, longitude })
+            });
+            await loadPois();
+            const createdPoi = pois.find((poi) => String(poi.id) === String(result.resultData.id));
+            if (createdPoi) selectPoi(createdPoi);
+            notify(result.message);
+        } catch (error) {
+            notify(error.message, true);
+        }
+    }
     const getRouteInstructions = (route) => route.features
         .filter((feature) => feature.geometry?.type === 'Point')
         .map((feature) => feature.properties?.description)
@@ -246,6 +272,11 @@
 
     $('#poi-search').addEventListener('input', filterPois);
     $('#search-button').addEventListener('click', filterPois);
+    $('#add-poi-button').addEventListener('click', () => {
+        const willEnable = !isPoiAddMode;
+        setPoiAddMode(willEnable);
+        if (willEnable) notify('지도에서 POI를 추가할 위치를 클릭해 주세요.');
+    });
     $('#my-location-button').addEventListener('click', () => {
         if (!userMarker) {
             notify('현재 위치를 확인하는 중입니다. 위치 권한을 허용해 주세요.', true);
@@ -302,6 +333,18 @@
         }
     });
     $('#import-cancel-button').addEventListener('click', clearImportPreview);
+
+    map.on('click', (event) => {
+        if (!isPoiAddMode) return;
+        setPoiAddMode(false);
+        createPoiAt(event.latlng.lat, event.latlng.lng);
+    });
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && isPoiAddMode) {
+            setPoiAddMode(false);
+            notify('POI 추가 모드를 취소했습니다.');
+        }
+    });
 
     trackPosition();
     loadPois();

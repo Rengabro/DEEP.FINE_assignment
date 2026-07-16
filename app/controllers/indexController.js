@@ -11,6 +11,19 @@ exports.getPois = async (req, res, next) => {
     }
 };
 
+exports.createPoi = async (req, res, next) => {
+    try {
+        const poi = await poiService.createPoi(req.body);
+        res.status(201).json(createSuccessResponse({
+            message: 'POI를 추가했습니다.',
+            resultData: poi,
+            resultCnt: 1
+        }));
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.importPois = async (req, res, next) => {
     try {
         const result = await poiService.importExcel(req.file);

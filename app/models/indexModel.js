@@ -64,6 +64,17 @@ exports.findPois = async (search = '') => {
     return result.rows;
 };
 
+exports.createPoi = async ({ title, latitude, longitude }) => {
+    await ensurePoiSchema(psql);
+    const result = await psql.query(
+        `INSERT INTO tb_poi (title, latitude, longitude)
+         VALUES ($1, $2, $3)
+         RETURNING id, title, latitude, longitude`,
+        [title, latitude, longitude]
+    );
+    return result.rows[0];
+};
+
 /** Replace all POIs atomically so the uploaded Excel file is the source of truth. */
 exports.replacePois = async (pois) => {
     const connection = await psql.getConnection();

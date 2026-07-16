@@ -1,7 +1,7 @@
 const XLSX = require('xlsx');
 const indexModel = require('../models/indexModel');
 const { createHttpError } = require('../utils/httpError');
-const { toCoordinate, isValidCoordinate } = require('../utils/coordinate');
+const { toCoordinate, isValidCoordinate, assertCoordinate } = require('../utils/coordinate');
 
 const readPoisFromExcel = (file) => {
     if (!file) {
@@ -36,6 +36,23 @@ const readPoisFromExcel = (file) => {
 };
 
 exports.getPois = (search) => indexModel.findPois(search);
+
+exports.createPoi = ({ title, latitude, longitude }) => {
+    const poiTitle = String(title || '').trim();
+    const poiLatitude = toCoordinate(latitude);
+    const poiLongitude = toCoordinate(longitude);
+
+    if (!poiTitle || poiTitle.length > 255) {
+        throw createHttpError(400, 'POI 이름은 1~255자로 입력해 주세요.');
+    }
+    assertCoordinate(poiLatitude, poiLongitude, 'POI 좌표가 올바르지 않습니다.');
+
+    return indexModel.createPoi({
+        title: poiTitle,
+        latitude: poiLatitude,
+        longitude: poiLongitude
+    });
+};
 
 exports.previewExcel = (file) => {
     const pois = readPoisFromExcel(file);

@@ -34,3 +34,28 @@ test('replaces POIs in one transaction after truncating existing rows', async ()
     assert.match(connection.queries.at(-1).text, /COMMIT/);
     assert.equal(connection.released, true);
 });
+
+test('inserts a manually created POI with parameter binding', async () => {
+    const queries = [];
+    global.psql = {
+        query: async (text, values = []) => {
+            queries.push({ text, values });
+            if (text.includes('RETURNING id')) {
+                return { rows: [{ id: 9, title: '지도 클릭 POI', latitude: 37.5295, longitude: 126.9655 }] };
+            }
+            return { rows: [] };
+        }
+    };
+    const indexModel = require('../app/models/indexModel');
+
+    const poi = await indexModel.createPoi({
+        title: '지도 클릭 POI',
+        latitude: 37.5295,
+        longitude: 126.9655
+    });
+
+    assert.equal(poi.id, 9);
+    assert.ok(queries.some(({ text, values }) =>
+        text.includes('INSERT INTO tb_poi') && values.join('|') === '지도 클릭 POI|37.5295|126.9655'
+    ));
+});

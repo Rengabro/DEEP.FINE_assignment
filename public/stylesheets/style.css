@@ -14,6 +14,8 @@ button:hover { filter: brightness(.94); }
 .poi-list button:hover { background: #edf3ff; }
 .map-actions { position: fixed; z-index: 1000; bottom: 28px; left: 16px; display: grid; gap: 8px; }
 .map-actions button { min-width: 122px; padding: 12px 15px; box-shadow: 0 4px 14px rgba(20,34,55,.2); }
+.map-actions button.is-active { background: #b54708; }
+#map_div.is-adding-poi, #map_div.is-adding-poi .leaflet-interactive { cursor: crosshair; }
 .map-actions button:disabled, .import-preview button:disabled { cursor: wait; opacity: .6; }
 .import-preview { position: fixed; z-index: 1000; bottom: 28px; left: 150px; width: min(310px, calc(100vw - 182px)); padding: 14px; border-radius: 12px; background: rgba(255,255,255,.97); box-shadow: 0 8px 26px rgba(20,34,55,.2); }
 .import-preview[hidden] { display: none; }
