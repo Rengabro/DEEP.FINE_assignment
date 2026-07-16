@@ -27,6 +27,8 @@ test('replaces POIs in one transaction after truncating existing rows', async ()
 
     assert.deepEqual(count, { previousCount: 3, importedCount: 2 });
     assert.match(connection.queries[0].text, /BEGIN/);
+    assert.ok(connection.queries.some(({ text }) => text.includes('chk_tb_poi_latitude_range')));
+    assert.ok(connection.queries.some(({ text }) => text.includes('idx_tb_poi_title_id')));
     assert.ok(connection.queries.some(({ text }) => text.includes('TRUNCATE TABLE tb_poi RESTART IDENTITY')));
     assert.ok(connection.queries.some(({ text, values }) => text.includes('INSERT INTO tb_poi') && values.length === 6));
     assert.match(connection.queries.at(-1).text, /COMMIT/);

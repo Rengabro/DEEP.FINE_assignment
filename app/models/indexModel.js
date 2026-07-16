@@ -11,12 +11,47 @@ const CREATE_POI_TABLE = `
         title VARCHAR(255) NOT NULL,
         latitude DOUBLE PRECISION NOT NULL,
         longitude DOUBLE PRECISION NOT NULL,
+        CONSTRAINT chk_tb_poi_latitude_range CHECK (latitude BETWEEN -90 AND 90),
+        CONSTRAINT chk_tb_poi_longitude_range CHECK (longitude BETWEEN -180 AND 180),
         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
 `;
 
+const ADD_POI_CONSTRAINTS = `
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conname = 'chk_tb_poi_latitude_range'
+              AND conrelid = 'tb_poi'::regclass
+        ) THEN
+            ALTER TABLE tb_poi
+                ADD CONSTRAINT chk_tb_poi_latitude_range CHECK (latitude BETWEEN -90 AND 90);
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conname = 'chk_tb_poi_longitude_range'
+              AND conrelid = 'tb_poi'::regclass
+        ) THEN
+            ALTER TABLE tb_poi
+                ADD CONSTRAINT chk_tb_poi_longitude_range CHECK (longitude BETWEEN -180 AND 180);
+        END IF;
+    END $$;
+`;
+
+const CREATE_POI_TITLE_INDEX = `
+    CREATE INDEX IF NOT EXISTS idx_tb_poi_title_id ON tb_poi (title, id)
+`;
+
+const ensurePoiSchema = async (connection) => {
+    await connection.query(CREATE_POI_TABLE);
+    await connection.query(ADD_POI_CONSTRAINTS);
+    await connection.query(CREATE_POI_TITLE_INDEX);
+};
+
 exports.findPois = async (search = '') => {
-    await psql.query(CREATE_POI_TABLE);
+    await ensurePoiSchema(psql);
 
     const hasSearch = Boolean(search);
     const result = await psql.query(
@@ -34,7 +69,7 @@ exports.replacePois = async (pois) => {
     const connection = await psql.getConnection();
     try {
         await connection.query('BEGIN');
-        await connection.query(CREATE_POI_TABLE);
+        await ensurePoiSchema(connection);
         const previousCountResult = await connection.query('SELECT COUNT(*)::int AS count FROM tb_poi');
         const previousCount = previousCountResult.rows[0].count;
         await connection.query('TRUNCATE TABLE tb_poi RESTART IDENTITY');
