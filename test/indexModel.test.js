@@ -60,13 +60,35 @@ test('inserts a manually created POI with parameter binding', async () => {
     ));
 });
 
-test('deletes a POI with parameter binding', async () => {
+test('only retrieves POIs that have not been soft-deleted', async () => {
     const queries = [];
     global.psql = {
         query: async (text, values = []) => {
             queries.push({ text, values });
-            if (text.includes('DELETE FROM tb_poi')) {
-                return { rows: [{ id: 12, title: '삭제할 POI' }] };
+            if (text.includes('SELECT id, title, latitude, longitude')) {
+                return { rows: [] };
+            }
+            return { rows: [] };
+        }
+    };
+    const indexModel = require('../app/models/indexModel');
+
+    await indexModel.findPois('카페');
+
+    assert.ok(queries.some(({ text, values }) =>
+        text.includes('WHERE deleted_at IS NULL') &&
+        text.includes('AND title ILIKE $1') &&
+        values[0] === '%카페%'
+    ));
+});
+
+test('soft-deletes an active POI with parameter binding', async () => {
+    const queries = [];
+    global.psql = {
+        query: async (text, values = []) => {
+            queries.push({ text, values });
+            if (text.includes('UPDATE tb_poi')) {
+                return { rows: [{ id: 12, title: '삭제할 POI', deleted_at: '2026-07-16T00:00:00.000Z' }] };
             }
             return { rows: [] };
         }
@@ -75,8 +97,11 @@ test('deletes a POI with parameter binding', async () => {
 
     const poi = await indexModel.deletePoi(12);
 
-    assert.deepEqual(poi, { id: 12, title: '삭제할 POI' });
+    assert.deepEqual(poi, { id: 12, title: '삭제할 POI', deleted_at: '2026-07-16T00:00:00.000Z' });
     assert.ok(queries.some(({ text, values }) =>
-        text.includes('DELETE FROM tb_poi') && values[0] === 12
+        text.includes('UPDATE tb_poi') &&
+        text.includes('SET deleted_at = CURRENT_TIMESTAMP') &&
+        text.includes('AND deleted_at IS NULL') &&
+        values[0] === 12
     ));
 });

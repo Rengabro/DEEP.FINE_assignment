@@ -28,7 +28,7 @@ exports.deletePoi = async (req, res, next) => {
     try {
         const poi = await poiService.deletePoi(req.params.id);
         res.json(createSuccessResponse({
-            message: `'${poi.title}' POI를 삭제했습니다.`,
+            message: `'${poi.title}' POI를 삭제 처리했습니다.`,
             resultData: poi,
             resultCnt: 1
         }));

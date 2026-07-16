@@ -24,7 +24,7 @@
 - `내 위치` 버튼을 누르면 빨간 현재 위치 마커를 지도 중앙으로 이동합니다.
 - 검색 결과 목록 또는 지도 마커를 선택하면 해당 POI가 지도 중앙에 오도록 이동합니다.
 - `POI 추가` 버튼을 누른 뒤 지도 위치를 선택하면 입력한 이름과 클릭 좌표로 POI를 추가합니다.
-- 목록의 `삭제` 버튼으로 원하는 POI를 DB와 지도에서 제거할 수 있습니다.
+- 목록의 `삭제` 버튼으로 원하는 POI를 지도와 목록에서 제거할 수 있습니다. DB에는 삭제 시각을 기록하는 Soft Delete 방식으로 보관합니다.
 - `새로고침` 버튼은 DB에서 POI 데이터를 다시 불러와 마커를 갱신합니다.
 
 ### TMAP API 활용
@@ -200,6 +200,7 @@ npm start
 | `latitude` | `DOUBLE PRECISION` | 위도 |
 | `longitude` | `DOUBLE PRECISION` | 경도 |
 | `created_at` | `TIMESTAMPTZ` | 저장 시각 |
+| `deleted_at` | `TIMESTAMPTZ` | 삭제 처리 시각. `NULL`이면 활성 POI |
 
 ### 데이터 무결성 및 성능
 
@@ -251,7 +252,7 @@ COMMIT
 | `GET` | `/index` | 지도 화면 |
 | `GET` | `/api/pois?search=` | DB POI 목록 조회 |
 | `POST` | `/api/pois` | 지도 클릭 좌표로 POI 추가 |
-| `DELETE` | `/api/pois/:id` | 선택한 POI 삭제 |
+| `DELETE` | `/api/pois/:id` | 선택한 POI를 Soft Delete 처리 |
 | `POST` | `/api/pois/import/preview` | 엑셀 사전 검증 및 유효 행 수 조회 |
 | `POST` | `/api/pois/import` | 기존 POI 삭제 후 엑셀 데이터 저장 |
 | `GET` | `/api/tmap/reverse-geocoding` | TMAP 역지오코딩 프록시 |

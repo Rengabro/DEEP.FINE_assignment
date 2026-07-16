@@ -13,7 +13,8 @@ const CREATE_POI_TABLE = `
         longitude DOUBLE PRECISION NOT NULL,
         CONSTRAINT chk_tb_poi_latitude_range CHECK (latitude BETWEEN -90 AND 90),
         CONSTRAINT chk_tb_poi_longitude_range CHECK (longitude BETWEEN -180 AND 180),
-        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMPTZ NULL
     )
 `;
 
@@ -44,9 +45,15 @@ const CREATE_POI_TITLE_INDEX = `
     CREATE INDEX IF NOT EXISTS idx_tb_poi_title_id ON tb_poi (title, id)
 `;
 
+const ADD_POI_SOFT_DELETE_COLUMN = `
+    ALTER TABLE tb_poi
+    ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ NULL
+`;
+
 const ensurePoiSchema = async (connection) => {
     await connection.query(CREATE_POI_TABLE);
     await connection.query(ADD_POI_CONSTRAINTS);
+    await connection.query(ADD_POI_SOFT_DELETE_COLUMN);
     await connection.query(CREATE_POI_TITLE_INDEX);
 };
 
@@ -57,7 +64,8 @@ exports.findPois = async (search = '') => {
     const result = await psql.query(
         `SELECT id, title, latitude, longitude
            FROM tb_poi
-          ${hasSearch ? 'WHERE title ILIKE $1' : ''}
+          WHERE deleted_at IS NULL
+            ${hasSearch ? 'AND title ILIKE $1' : ''}
           ORDER BY title, id`,
         hasSearch ? [`%${search}%`] : []
     );
@@ -78,9 +86,11 @@ exports.createPoi = async ({ title, latitude, longitude }) => {
 exports.deletePoi = async (id) => {
     await ensurePoiSchema(psql);
     const result = await psql.query(
-        `DELETE FROM tb_poi
-         WHERE id = $1
-         RETURNING id, title`,
+        `UPDATE tb_poi
+            SET deleted_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+            AND deleted_at IS NULL
+         RETURNING id, title, deleted_at`,
         [id]
     );
     return result.rows[0] || null;
