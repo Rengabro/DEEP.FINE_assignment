@@ -10,8 +10,10 @@ button:hover { filter: brightness(.94); }
 .search-row button { padding: 0 14px; }
 .muted { margin: 11px 2px 6px; color: #667085; font-size: 13px; }
 .poi-list { max-height: 235px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
-.poi-list button { width: 100%; padding: 10px 8px; border-radius: 5px; background: transparent; color: #202939; text-align: left; }
-.poi-list button:hover { background: #edf3ff; }
+.poi-list li { display: flex; align-items: center; width: 100%; gap: 6px; }
+.poi-title-button { flex: 1; min-width: 0; padding: 10px 8px; border-radius: 5px; background: transparent; color: #202939; overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.poi-title-button:hover { background: #edf3ff; }
+.poi-delete-button { flex: 0 0 28px; width: 28px; height: 28px; padding: 0; border-radius: 50%; background: #b42318; font-size: 18px; line-height: 1; }
 .map-actions { position: fixed; z-index: 1000; bottom: 28px; left: 16px; display: grid; gap: 8px; }
 .map-actions button { min-width: 122px; padding: 12px 15px; box-shadow: 0 4px 14px rgba(20,34,55,.2); }
 .map-actions button.is-active { background: #b54708; }

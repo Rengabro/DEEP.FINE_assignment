@@ -137,11 +137,19 @@
         list.replaceChildren();
         items.forEach((poi) => {
             const item = document.createElement('li');
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.textContent = poi.title;
-            button.addEventListener('click', () => selectPoi(poi));
-            item.append(button);
+            const titleButton = document.createElement('button');
+            titleButton.type = 'button';
+            titleButton.className = 'poi-title-button';
+            titleButton.textContent = poi.title;
+            titleButton.addEventListener('click', () => selectPoi(poi));
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.className = 'poi-delete-button';
+            deleteButton.textContent = '×';
+            deleteButton.setAttribute('aria-label', `${poi.title} 삭제`);
+            deleteButton.title = '삭제';
+            deleteButton.addEventListener('click', () => deletePoi(poi));
+            item.append(titleButton, deleteButton);
             list.append(item);
         });
         $('#poi-count').textContent = `${items.length}개의 POI`;
@@ -171,6 +179,21 @@
             await loadPois();
             const createdPoi = pois.find((poi) => String(poi.id) === String(result.resultData.id));
             if (createdPoi) selectPoi(createdPoi);
+            notify(result.message);
+        } catch (error) {
+            notify(error.message, true);
+        }
+    }
+    async function deletePoi(poi) {
+        if (!window.confirm(`'${poi.title}' POI를 삭제할까요?`)) return;
+
+        try {
+            const result = await request(`/api/pois/${poi.id}`, { method: 'DELETE' });
+            if (String(selectedPoiId) === String(poi.id)) {
+                selectedPoiId = null;
+                map.closePopup();
+            }
+            await loadPois();
             notify(result.message);
         } catch (error) {
             notify(error.message, true);

@@ -75,6 +75,17 @@ exports.createPoi = async ({ title, latitude, longitude }) => {
     return result.rows[0];
 };
 
+exports.deletePoi = async (id) => {
+    await ensurePoiSchema(psql);
+    const result = await psql.query(
+        `DELETE FROM tb_poi
+         WHERE id = $1
+         RETURNING id, title`,
+        [id]
+    );
+    return result.rows[0] || null;
+};
+
 /** Replace all POIs atomically so the uploaded Excel file is the source of truth. */
 exports.replacePois = async (pois) => {
     const connection = await psql.getConnection();

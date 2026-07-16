@@ -20,6 +20,7 @@ router.get('/index', function(req, res) {
 
 router.get('/api/pois', indexController.getPois);
 router.post('/api/pois', indexController.createPoi);
+router.delete('/api/pois/:id', indexController.deletePoi);
 router.post('/api/pois/import/preview', upload.single('file'), indexController.previewPoisImport);
 router.post('/api/pois/import', upload.single('file'), indexController.importPois);
 router.get('/api/tmap/reverse-geocoding', indexController.reverseGeocode);

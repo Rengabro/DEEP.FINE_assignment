@@ -59,6 +59,15 @@ test('creates a POI with validated map coordinates', async (t) => {
     });
 });
 
+test('deletes a POI by its valid identifier', async (t) => {
+    const originalDeletePoi = indexModel.deletePoi;
+    indexModel.deletePoi = async (id) => ({ id, title: '삭제할 POI' });
+    t.after(() => { indexModel.deletePoi = originalDeletePoi; });
+
+    const poi = await poiService.deletePoi('11');
+    assert.deepEqual(poi, { id: 11, title: '삭제할 POI' });
+});
+
 test('rejects an Excel file with invalid coordinates', async () => {
     const file = createExcelFile([
         { title: '잘못된 POI', latitude: 100, longitude: 126.9655 }

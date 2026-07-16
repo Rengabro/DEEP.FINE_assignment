@@ -24,6 +24,19 @@ exports.createPoi = async (req, res, next) => {
     }
 };
 
+exports.deletePoi = async (req, res, next) => {
+    try {
+        const poi = await poiService.deletePoi(req.params.id);
+        res.json(createSuccessResponse({
+            message: `'${poi.title}' POI를 삭제했습니다.`,
+            resultData: poi,
+            resultCnt: 1
+        }));
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.importPois = async (req, res, next) => {
     try {
         const result = await poiService.importExcel(req.file);

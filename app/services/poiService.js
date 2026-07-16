@@ -54,6 +54,19 @@ exports.createPoi = ({ title, latitude, longitude }) => {
     });
 };
 
+exports.deletePoi = async (id) => {
+    const poiId = Number(id);
+    if (!Number.isSafeInteger(poiId) || poiId <= 0) {
+        throw createHttpError(400, '삭제할 POI 식별자가 올바르지 않습니다.');
+    }
+
+    const deletedPoi = await indexModel.deletePoi(poiId);
+    if (!deletedPoi) {
+        throw createHttpError(404, '삭제할 POI를 찾을 수 없습니다.');
+    }
+    return deletedPoi;
+};
+
 exports.previewExcel = (file) => {
     const pois = readPoisFromExcel(file);
     return { validCount: pois.length };

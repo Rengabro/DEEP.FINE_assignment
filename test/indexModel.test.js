@@ -59,3 +59,24 @@ test('inserts a manually created POI with parameter binding', async () => {
         text.includes('INSERT INTO tb_poi') && values.join('|') === '지도 클릭 POI|37.5295|126.9655'
     ));
 });
+
+test('deletes a POI with parameter binding', async () => {
+    const queries = [];
+    global.psql = {
+        query: async (text, values = []) => {
+            queries.push({ text, values });
+            if (text.includes('DELETE FROM tb_poi')) {
+                return { rows: [{ id: 12, title: '삭제할 POI' }] };
+            }
+            return { rows: [] };
+        }
+    };
+    const indexModel = require('../app/models/indexModel');
+
+    const poi = await indexModel.deletePoi(12);
+
+    assert.deepEqual(poi, { id: 12, title: '삭제할 POI' });
+    assert.ok(queries.some(({ text, values }) =>
+        text.includes('DELETE FROM tb_poi') && values[0] === 12
+    ));
+});
