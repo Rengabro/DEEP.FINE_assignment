@@ -1,10 +1,11 @@
 const poiService = require('../services/poiService');
 const tmapService = require('../services/tmapService');
+const { createSuccessResponse } = require('../utils/apiResponse');
 
 exports.getPois = async (req, res, next) => {
     try {
         const pois = await poiService.getPois(String(req.query.search || '').trim());
-        res.json({ resultData: pois, resultCnt: pois.length });
+        res.json(createSuccessResponse({ resultData: pois, resultCnt: pois.length }));
     } catch (error) {
         next(error);
     }
@@ -13,11 +14,11 @@ exports.getPois = async (req, res, next) => {
 exports.importPois = async (req, res, next) => {
     try {
         const result = await poiService.importExcel(req.file);
-        res.json({
+        res.json(createSuccessResponse({
             message: `기존 ${result.previousCount}건을 삭제하고 ${result.importedCount}건의 POI를 저장했습니다.`,
             resultCnt: result.importedCount,
             resultData: result
-        });
+        }));
     } catch (error) {
         next(error);
     }
@@ -25,7 +26,7 @@ exports.importPois = async (req, res, next) => {
 
 exports.previewPoisImport = async (req, res, next) => {
     try {
-        res.json({ resultData: poiService.previewExcel(req.file) });
+        res.json(createSuccessResponse({ resultData: poiService.previewExcel(req.file) }));
     } catch (error) {
         next(error);
     }
@@ -34,7 +35,7 @@ exports.previewPoisImport = async (req, res, next) => {
 exports.reverseGeocode = async (req, res, next) => {
     try {
         const result = await tmapService.reverseGeocode(req.query);
-        res.json(result);
+        res.json(createSuccessResponse({ resultData: result, resultCnt: 1 }));
     } catch (error) {
         next(error);
     }
@@ -43,7 +44,7 @@ exports.reverseGeocode = async (req, res, next) => {
 exports.getPedestrianRoute = async (req, res, next) => {
     try {
         const route = await tmapService.getPedestrianRoute(req.body);
-        res.json(route);
+        res.json(createSuccessResponse({ resultData: route, resultCnt: 1 }));
     } catch (error) {
         next(error);
     }

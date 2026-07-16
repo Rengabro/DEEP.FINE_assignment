@@ -3,6 +3,7 @@ let express = require('express');
 let cookieParser = require('cookie-parser');
 let logger = require('morgan');
 require('dotenv').config();
+const { createErrorResponse } = require('./app/utils/apiResponse');
 
 let indexRouter = require('./app/routes/index');
 const http = require("http");
@@ -37,13 +38,12 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   if (req.path.startsWith('/api/')) {
     const databaseUnavailable = err.code === 'ECONNREFUSED';
-    const response = {
+    return res.status(err.status || 500).json(createErrorResponse({
       message: databaseUnavailable
         ? 'PostgreSQL에 연결할 수 없습니다. config.json의 DB를 실행한 뒤 다시 시도해 주세요.'
-        : (err.message || '서버 요청을 처리하지 못했습니다.')
-    };
-    if (err.invalidRows) response.invalidRows = err.invalidRows;
-    return res.status(err.status || 500).json(response);
+        : (err.message || '서버 요청을 처리하지 못했습니다.'),
+      invalidRows: err.invalidRows
+    }));
   }
 
   // set locals, only providing error in development

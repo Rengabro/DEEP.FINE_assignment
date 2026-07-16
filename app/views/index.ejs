@@ -145,7 +145,7 @@
     const getAddress = async (latitude, longitude) => {
         try {
             const result = await request(`/api/tmap/reverse-geocoding?latitude=${latitude}&longitude=${longitude}`);
-            return result.addressInfo?.fullAddress || result.addressInfo?.roadAddress || '';
+            return result.resultData?.addressInfo?.fullAddress || result.resultData?.addressInfo?.roadAddress || '';
         } catch (_) {
             return '';
         }
@@ -184,13 +184,14 @@
     async function drawRoute(poi) {
         if (!currentPosition) return notify('현재 위치를 확인한 후 경로를 안내할 수 있습니다.', true);
         try {
-            const route = await request('/api/tmap/pedestrian-route', {
+            const routeResponse = await request('/api/tmap/pedestrian-route', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     startLat: currentPosition.lat, startLng: currentPosition.lng,
                     endLat: poi.latitude, endLng: poi.longitude, endName: poi.title
                 })
             });
+            const route = routeResponse.resultData;
             if (routeLayer) map.removeLayer(routeLayer);
             routeLayer = L.geoJSON(route, {
                 filter: (feature) => feature.geometry?.type !== 'Point',
