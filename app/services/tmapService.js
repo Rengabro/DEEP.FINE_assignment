@@ -1,21 +1,6 @@
 const TMAP_BASE_URL = 'https://apis.openapi.sk.com/tmap';
-
-const createHttpError = (status, message) => Object.assign(new Error(message), { status });
-
-const toCoordinate = (value) => {
-    const coordinate = Number(value);
-    return Number.isFinite(coordinate) ? coordinate : null;
-};
-
-const isValidCoordinate = (latitude, longitude) =>
-    latitude !== null && longitude !== null &&
-    latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
-
-const assertCoordinate = (latitude, longitude, message) => {
-    if (!isValidCoordinate(latitude, longitude)) {
-        throw createHttpError(400, message);
-    }
-};
+const { createHttpError } = require('../utils/httpError');
+const { toCoordinate, assertCoordinate } = require('../utils/coordinate');
 
 const requestTmap = async (path, options = {}) => {
     if (!process.env.TMAP_API_KEY) {

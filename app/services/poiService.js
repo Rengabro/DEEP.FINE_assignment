@@ -1,17 +1,7 @@
 const XLSX = require('xlsx');
 const indexModel = require('../models/indexModel');
-
-const createHttpError = (status, message, extra = {}) =>
-    Object.assign(new Error(message), { status, ...extra });
-
-const toCoordinate = (value) => {
-    const coordinate = Number(value);
-    return Number.isFinite(coordinate) ? coordinate : null;
-};
-
-const isValidCoordinate = (latitude, longitude) =>
-    latitude !== null && longitude !== null &&
-    latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+const { createHttpError } = require('../utils/httpError');
+const { toCoordinate, isValidCoordinate } = require('../utils/coordinate');
 
 const readPoisFromExcel = (file) => {
     if (!file) {
