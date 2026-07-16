@@ -1,0 +1,43 @@
+const assert = require('node:assert/strict');
+const test = require('node:test');
+const XLSX = require('xlsx');
+
+const indexModel = require('../app/models/indexModel');
+const poiService = require('../app/services/poiService');
+
+const createExcelFile = (rows) => {
+    const workbook = XLSX.utils.book_new();
+    const sheet = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(workbook, sheet, 'POI');
+    return { buffer: XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) };
+};
+
+test('imports valid Excel rows and replaces the POI dataset', async (t) => {
+    const originalReplacePois = indexModel.replacePois;
+    let savedPois;
+    indexModel.replacePois = async (pois) => {
+        savedPois = pois;
+        return pois.length;
+    };
+    t.after(() => { indexModel.replacePois = originalReplacePois; });
+
+    const count = await poiService.importExcel(createExcelFile([
+        { title: '테스트 POI', latitude: 37.5295, longitude: 126.9655 }
+    ]));
+
+    assert.equal(count, 1);
+    assert.deepEqual(savedPois, [
+        { title: '테스트 POI', latitude: 37.5295, longitude: 126.9655 }
+    ]);
+});
+
+test('rejects an Excel file with invalid coordinates', async () => {
+    const file = createExcelFile([
+        { title: '잘못된 POI', latitude: 100, longitude: 126.9655 }
+    ]);
+
+    await assert.rejects(
+        () => poiService.importExcel(file),
+        (error) => error.status === 400 && error.invalidRows.includes(2)
+    );
+});
